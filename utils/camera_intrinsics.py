@@ -11,6 +11,9 @@ def calculate_camera_intrinsics(H, W, HFOV, VFOV):
 
     return fx, fy, cx, cy
 
+def calculate_camera_matrix():
+    pass
+
 def get_camera_matrix_from_camera(camera):
     """
     Updates camera with calculated focal lengths and image centers

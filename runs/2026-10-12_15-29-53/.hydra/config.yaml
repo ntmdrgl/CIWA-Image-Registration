@@ -1,0 +1,15 @@
+camera:
+  name: flir_one_pro
+  image_width: 1080
+  image_height: 1440
+  thermal_width: 640
+  thermal_height: 480
+  HFOV: 55
+  VFOV: 43
+dataset:
+  name: citrus
+  path: data/citrus
+objective:
+  metric: mutual_information
+transform:
+  use_distortion: true
