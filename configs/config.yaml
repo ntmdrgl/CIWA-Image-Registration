@@ -10,4 +10,5 @@ transform:
 
 hydra:
   run:
-    dir: runs/${now:%Y-%m-%d_%H-%M-%S}
+    # dir: runs/${now:%Y-%m-%d_%H-%M-%S} # use if you want to save runs
+    dir: .                             # use if you don't want to save runs
