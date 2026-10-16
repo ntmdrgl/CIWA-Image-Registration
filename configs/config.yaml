@@ -1,12 +1,11 @@
 defaults:
   - dataset: tomato
   - _self_
+  - override hydra/job_logging: disabled # prevents .log generation
 
-objective:
-  metric: mutual_information
-
-transform:
-  use_distortion: true
+model: GWO
+metric: mutual_information
+use_distortion: true
 
 hydra:
   run:
