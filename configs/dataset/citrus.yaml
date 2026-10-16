@@ -1,3 +1,6 @@
-path: data\citrus\train_thermal
-thermal_camera: flir_one_pro_thermal
-visible_camera: flir_one_pro_visible
+defaults:
+  - /camera@_group_: flir_one_pro
+  - _self_
+
+name: citrus
+path: data/citrus/train

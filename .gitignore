@@ -1,3 +1,13 @@
+# dataset
 data/
+
+# environment
 .venv/
+
+# pycache
 *.pyc
+
+# hydra
+.hydra/
+runs/
+scripts/runs/

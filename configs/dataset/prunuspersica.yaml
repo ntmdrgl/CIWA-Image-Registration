@@ -1,0 +1,6 @@
+defaults:
+  - /camera@_group_: flir_one_pro
+  - _self_
+
+name: prunuspersica
+path: data/prunuspersica/train

@@ -1,0 +1,7 @@
+name: flir_ax8
+image_width: 640
+image_height: 480
+thermal_width: 80
+thermal_height: 60
+HFOV: 48
+VFOV: 37

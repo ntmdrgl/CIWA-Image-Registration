@@ -1,0 +1,6 @@
+defaults:
+  - /camera@_group_: flir_ax8
+  - _self_
+
+name: tomato
+path: data/tomato/train
