@@ -7,8 +7,8 @@ camera:
   HFOV: 55
   VFOV: 43
 dataset:
-  name: citrus
-  path: data/citrus
+  name: almond
+  path: data/almond/train
 objective:
   metric: mutual_information
 transform:

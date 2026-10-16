@@ -3,4 +3,4 @@ defaults:
   - _self_
 
 name: citrus
-path: data/citrus
+path: data/citrus/train

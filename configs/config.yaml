@@ -1,5 +1,5 @@
 defaults:
-  - dataset: citrus
+  - dataset: tomato
   - _self_
 
 objective:
