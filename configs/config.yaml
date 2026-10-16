@@ -3,9 +3,27 @@ defaults:
   - _self_
   - override hydra/job_logging: disabled # prevents .log generation
 
-model: GWO
-metric: mutual_information
-use_distortion: true
+optimization:
+  algorithm: gwo
+  metric: mutual_information  # or normalized_mutual_information
+  use_distortion: true
+
+  num_images: 10
+  use_all_images: false
+
+  epochs: 100
+  pop_size: 50
+  bins: 64
+  seed: 42
+
+  # angle, hx, hy, sx, sy, tx, ty, k1, k2, k3, p1, p2
+  lower_bounds: [-1, -0.05, -0.05, 1.0, 1.0, -50, -50, -0.50, -0.30, -0.15, -0.01, -0.01]
+  upper_bounds: [ 1,  0.05,  0.05, 1.4, 1.4,  50,  50,  0.50,  0.30,  0.15,  0.01,  0.01]
+
+  # lower_bounds: [0, 0, 0, 1.0, 1.0, 0, 0, 0, -0.30, -0.15, -0.01, -0.01]
+  # upper_bounds: [0, 0, 0, 1.4, 1.4, 0, 0, 0,  0.30,  0.15,  0.01,  0.01]
+
+transform: manual
 
 hydra:
   run:

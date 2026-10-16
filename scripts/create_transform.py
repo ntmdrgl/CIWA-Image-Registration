@@ -27,7 +27,10 @@ def main(cfg: DictConfig) -> None:
     store_transform(
         name="manual_transform",
         source="manual",
-        parameters=parameters
+        metric=cfg.optimization.metric,
+        best_metric=None,
+        parameters=parameters,
+        config=cfg,
     )
 
 if __name__ == "__main__":

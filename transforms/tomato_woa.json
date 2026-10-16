@@ -1,0 +1,75 @@
+{
+    "source": "woa",
+    "metric": "mutual_information",
+    "best_metric": 1.9272530820044529,
+    "parameters": {
+        "angle": -0.2133349241738956,
+        "shear_x": 0.049696755387641345,
+        "shear_y": 0.04980001069474044,
+        "scale_x": 1.0933204706842568,
+        "scale_y": 0.9,
+        "translation_x": 49.69675538764133,
+        "translation_y": -50.0,
+        "k1": 0.4980001069474043,
+        "k2": 0.26522856631522285,
+        "k3": 0.149090266162924,
+        "p1": 0.009960002138948092,
+        "p2": 0.009939351077528268
+    },
+    "config": {
+        "camera": {
+            "name": "flir_ax8",
+            "image_width": 640,
+            "image_height": 480,
+            "thermal_width": 80,
+            "thermal_height": 60,
+            "HFOV": 48,
+            "VFOV": 37
+        },
+        "dataset": {
+            "name": "tomato",
+            "path": "data/tomato/train",
+            "is_vertical": false
+        },
+        "optimization": {
+            "algorithm": "woa",
+            "metric": "mutual_information",
+            "use_distortion": true,
+            "num_images": 10,
+            "use_all_images": false,
+            "epochs": 100,
+            "pop_size": 50,
+            "bins": 64,
+            "seed": 42,
+            "lower_bounds": [
+                -1,
+                -0.05,
+                -0.05,
+                0.9,
+                0.9,
+                -50,
+                -50,
+                -0.5,
+                -0.3,
+                -0.15,
+                -0.01,
+                -0.01
+            ],
+            "upper_bounds": [
+                1,
+                0.05,
+                0.05,
+                1.1,
+                1.1,
+                50,
+                50,
+                0.5,
+                0.3,
+                0.15,
+                0.01,
+                0.01
+            ]
+        },
+        "transform": "manual"
+    }
+}

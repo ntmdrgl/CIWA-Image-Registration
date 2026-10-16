@@ -1,5 +1,6 @@
 {
     "source": "manual",
+    "metric": "mutual_information",
     "parameters": {
         "angle": 0,
         "shear_x": 0,

@@ -85,24 +85,9 @@ hydra:
     disable_existing_loggers: false
   job_logging:
     version: 1
-    formatters:
-      simple:
-        format: '[%(asctime)s][%(name)s][%(levelname)s] - %(message)s'
-    handlers:
-      console:
-        class: logging.StreamHandler
-        formatter: simple
-        stream: ext://sys.stdout
-      file:
-        class: logging.FileHandler
-        formatter: simple
-        filename: ${hydra.runtime.output_dir}/${hydra.job.name}.log
     root:
-      level: INFO
-      handlers:
-      - console
-      - file
-    disable_existing_loggers: false
+      level: ERROR
+    disable_existing_loggers: true
   env: {}
   mode: RUN
   searchpath: []
@@ -112,11 +97,12 @@ hydra:
     hydra:
     - hydra.mode=RUN
     task:
-    - dataset=fig
+    - dataset=citrus
+    - transform=citrus_woa_10nmi
   job:
     name: test_registration
     chdir: null
-    override_dirname: dataset=fig
+    override_dirname: dataset=citrus,transform=citrus_woa_10nmi
     id: ???
     num: ???
     config_name: config
@@ -130,24 +116,24 @@ hydra:
   runtime:
     version: 1.3.7
     version_base: '1.3'
-    cwd: C:\GitHub\CIWA-image-alignment
+    cwd: C:\Github\CIWA-image-alignment
     config_sources:
     - path: hydra.conf
       schema: pkg
       provider: hydra
-    - path: C:\GitHub\CIWA-image-alignment\configs
+    - path: C:\Github\CIWA-image-alignment\configs
       schema: file
       provider: main
     - path: ''
       schema: structured
       provider: schema
-    output_dir: C:\GitHub\CIWA-image-alignment
+    output_dir: C:\Github\CIWA-image-alignment
     choices:
-      dataset: fig
+      dataset: citrus
       camera: flir_one_pro
       hydra/env: default
       hydra/callbacks: null
-      hydra/job_logging: default
+      hydra/job_logging: disabled
       hydra/hydra_logging: default
       hydra/hydra_help: default
       hydra/help: default

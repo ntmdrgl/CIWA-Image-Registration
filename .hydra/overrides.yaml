@@ -1,1 +1,2 @@
-- dataset=fig
+- dataset=citrus
+- transform=citrus_woa_10nmi

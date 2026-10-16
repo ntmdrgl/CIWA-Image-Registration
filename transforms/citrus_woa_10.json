@@ -1,0 +1,75 @@
+{
+    "source": "woa",
+    "metric": "mutual_information",
+    "best_metric": 0.2383155441650005,
+    "parameters": {
+        "angle": 0.12607142872543783,
+        "shear_x": -0.0001695815259993803,
+        "shear_y": 0.004958112410105347,
+        "scale_x": 1.2952143527928193,
+        "scale_y": 1.2972340085014737,
+        "translation_x": -6.821282231488245,
+        "translation_y": -17.302738489183227,
+        "k1": 0.27116042575790916,
+        "k2": -0.0767610012900835,
+        "k3": -0.01911599789527145,
+        "p1": 0.005210676613714846,
+        "p2": 0.009282465573747184
+    },
+    "config": {
+        "camera": {
+            "name": "flir_one_pro",
+            "image_width": 1440,
+            "image_height": 1080,
+            "thermal_width": 640,
+            "thermal_height": 480,
+            "HFOV": 55,
+            "VFOV": 43
+        },
+        "dataset": {
+            "name": "citrus",
+            "path": "data/citrus/train",
+            "is_vertical": true
+        },
+        "optimization": {
+            "algorithm": "woa",
+            "metric": "mutual_information",
+            "use_distortion": true,
+            "num_images": 10,
+            "use_all_images": false,
+            "epochs": 100,
+            "pop_size": 50,
+            "bins": 64,
+            "seed": 42,
+            "lower_bounds": [
+                -1,
+                -0.05,
+                -0.05,
+                1.0,
+                1.0,
+                -50,
+                -50,
+                -0.5,
+                -0.3,
+                -0.15,
+                -0.01,
+                -0.01
+            ],
+            "upper_bounds": [
+                1,
+                0.05,
+                0.05,
+                1.4,
+                1.4,
+                50,
+                50,
+                0.5,
+                0.3,
+                0.15,
+                0.01,
+                0.01
+            ]
+        },
+        "transform": "manual"
+    }
+}

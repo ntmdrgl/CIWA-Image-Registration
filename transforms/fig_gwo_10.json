@@ -1,0 +1,76 @@
+{
+    "source": "gwo",
+    "metric": "mutual_information",
+    "best_metric": 0.443839698937157,
+    "parameters": {
+        "angle": -0.19645640737487305,
+        "shear_x": 0.0017884774396392461,
+        "shear_y": 0.008037637622994169,
+        "scale_x": 1.2383347253834815,
+        "scale_y": 1.2289221240385855,
+        "translation_x": -19.576621982357352,
+        "translation_y": -20.90730204009706,
+        "k1": -0.06433718241302137,
+        "k2": -0.10770550535653634,
+        "k3": 0.10736448081745832,
+        "p1": 0.002392915233856725,
+        "p2": -0.0029655100734034654
+    },
+    "config": {
+        "camera": {
+            "name": "flir_one_pro",
+            "image_width": 1440,
+            "image_height": 1080,
+            "thermal_width": 640,
+            "thermal_height": 480,
+            "HFOV": 55,
+            "VFOV": 43
+        },
+        "dataset": {
+            "name": "fig",
+            "path": "data/fig/train",
+            "is_vertical": true
+        },
+        "optimization": {
+            "algorithm": "gwo",
+            "metric": "mutual_information",
+            "use_distortion": true,
+            "min_overlap": 0.5,
+            "num_images": 10,
+            "use_all_images": false,
+            "epochs": 100,
+            "pop_size": 50,
+            "bins": 64,
+            "seed": 42,
+            "lower_bounds": [
+                -1,
+                -0.05,
+                -0.05,
+                1.0,
+                1.0,
+                -50,
+                -50,
+                -0.5,
+                -0.3,
+                -0.15,
+                -0.01,
+                -0.01
+            ],
+            "upper_bounds": [
+                1,
+                0.05,
+                0.05,
+                1.4,
+                1.4,
+                50,
+                50,
+                0.5,
+                0.3,
+                0.15,
+                0.01,
+                0.01
+            ]
+        },
+        "transform": "manual"
+    }
+}

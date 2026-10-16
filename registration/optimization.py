@@ -1,120 +1,95 @@
+from mealpy import FloatVar, GWO, WOA
 import numpy as np
 import cv2
-from mealpy import FloatVar, PSO
+import os
 
-from utils.transformations import get_affine_matrix
-from utils.metrics import image_mutual_information
+from registration.transformations import get_affine_matrix
+from registration.metrics import image_mutual_information, normalized_mutual_information
 
 def run_optimization(
     objective_function,
-    lower_bounds, 
-    upper_bounds, 
+    lower_bounds,
+    upper_bounds,
     parameter_names,
-    epoch=200,
-    pop_size=50,
-    c1=2.0,
-    c2=2.0,
-    w=0.8,
-    seed=42
+    algorithm,
+    epoch,
+    pop_size,
+    seed,
 ):
+    models = {
+        "gwo": GWO.OriginalGWO,
+        "woa": WOA.OriginalWOA,
+    }
+
+    algorithm = algorithm.lower()
+    if algorithm not in models:
+        raise ValueError(f"Unsupported algorithm: {algorithm}")
+
+    if not (
+        len(lower_bounds)
+        == len(upper_bounds)
+        == len(parameter_names)
+    ):
+        raise ValueError("Bounds and parameter names must have equal lengths.")
+
     problem = {
         "bounds": FloatVar(
-            lb=lower_bounds,
-            ub=upper_bounds,
+            lb=list(lower_bounds),
+            ub=list(upper_bounds),
             name="registration_parameters",
         ),
         "obj_func": objective_function,
         "minmax": "max",
     }
 
-    optimizer = PSO.OriginalPSO(
+    optimizer = models[algorithm](
         epoch=epoch,
         pop_size=pop_size,
-        c1=c1,
-        c2=c2,
-        w=w,
     )
 
-    best = optimizer.solve(
-        problem,
-        seed=seed,
-    )
+    cpu_count = os.cpu_count() or 1
 
-    best_parameters = dict(
-        zip(parameter_names, best.solution)
-    )
+    if cpu_count < 3:
+        best = optimizer.solve(problem, mode="single", seed=seed)
+    else:
+        n_workers = min(32, cpu_count, pop_size)
 
-    return best_parameters, best.target.fitness
+        print(f"Using {n_workers} workers on {cpu_count} logical CPUs")
 
-
-def create_objective_function(
-    src_image,
-    tgt_image,
-    camera_matrix,
-    bins=256,
-):
-    tgt_H, tgt_W = tgt_image.shape[:2]
-
-    def objective_function(solution):
-        (
-            angle,
-            hx, hy,
-            sx, sy,
-            tx, ty,
-            k1, k2, k3,
-            p1, p2,
-        ) = solution
-
-        cx = camera_matrix[0][2]
-        cy = camera_matrix[1][2]
-
-        affine_matrix = get_affine_matrix(
-            angle=angle,
-            hx=hx,
-            hy=hy,
-            sx=sx,
-            sy=sy,
-            tx=tx,
-            ty=ty,
-            cx=cx,
-            cy=cy
+        best = optimizer.solve(
+            problem,
+            mode="thread",
+            n_workers=n_workers,
+            seed=seed,
         )
 
-        distortion_coefficients = np.array(
-            [k1, k2, p1, p2, k3],
-            dtype=np.float64,
-        )
+    parameters = {
+        name: float(value)
+        for name, value in zip(parameter_names, best.solution)
+    }
 
-        undistorted_image = cv2.undistort(
-            src_image,
-            camera_matrix,
-            distortion_coefficients,
-        )
-
-        transformed_image = cv2.warpAffine(
-            undistorted_image,
-            affine_matrix[:2, :],
-            (tgt_W, tgt_H),
-        )
-
-        return image_mutual_information(
-            transformed_image,
-            tgt_image,
-            bins=bins,
-        )
-
-    return objective_function
+    return parameters, float(best.target.fitness)
 
 def create_dataset_objective_function(
     src_images,
     tgt_images,
     camera_matrix,
-    bins=64,
+    bins,
+    metric,
+    use_distortion,
 ):
     """
-    Creates an objective function that evaluates one shared registration
-    parameter set across an entire dataset.
+    Evaluate shared registration parameters using the mean selected metric.
     """
+    metrics = {
+        "mutual_information": image_mutual_information,
+        "normalized_mutual_information": normalized_mutual_information,
+    }
+
+    if metric not in metrics:
+        raise ValueError(f"Unsupported metric: {metric}")
+
+    score_images = metrics[metric]
 
     if len(src_images) != len(tgt_images):
         raise ValueError(
@@ -148,6 +123,13 @@ def create_dataset_objective_function(
 
     src_H, src_W = src_shape
     tgt_H, tgt_W = tgt_shape
+    source_mask = np.ones(src_shape, dtype=np.float32)
+    # Keep histogram edges fixed across candidates for each image pair.
+    histogram_bins = [
+        [np.histogram_bin_edges(image[np.isfinite(image)], bins=bins)
+         for image in (src_image, tgt_image)]
+        for src_image, tgt_image in zip(src_images, tgt_images)
+    ]
 
     cx = camera_matrix[0, 2]
     cy = camera_matrix[1, 2]
@@ -191,11 +173,30 @@ def create_dataset_objective_function(
             m1type=cv2.CV_32FC1,
         )
 
+        # Transform coverage rather than testing intensity, preserving black content.
+        undistorted_mask = cv2.remap(
+            source_mask, map_x, map_y,
+            interpolation=cv2.INTER_LINEAR,
+            borderMode=cv2.BORDER_CONSTANT,
+            borderValue=0,
+        )
+        valid_mask = cv2.warpAffine(
+            (undistorted_mask >= 1 - 1e-6).astype(np.float32),
+            affine_matrix[:2, :], (tgt_W, tgt_H),
+            flags=cv2.INTER_LINEAR,
+            borderMode=cv2.BORDER_CONSTANT,
+            borderValue=0,
+        ) >= 1 - 1e-6
+
+        if not valid_mask.any():
+            return -np.inf
+
         scores = []
 
-        for src_image, tgt_image in zip(
+        for src_image, tgt_image, pair_bins in zip(
             src_images,
             tgt_images,
+            histogram_bins,
         ):
             undistorted_image = cv2.remap(
                 src_image,
@@ -215,15 +216,15 @@ def create_dataset_objective_function(
                 borderValue=0,
             )
 
-            score = image_mutual_information(
+            score = score_images(
                 transformed_image,
                 tgt_image,
-                bins=bins,
+                bins=pair_bins,
+                mask=valid_mask,
             )
 
             scores.append(score)
 
-        # One fitness value representing the whole dataset.
         return float(np.mean(scores))
 
     return objective_function

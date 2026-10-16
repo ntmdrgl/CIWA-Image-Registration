@@ -1,0 +1,75 @@
+{
+    "source": "woa",
+    "metric": "normalized_mutual_information",
+    "best_metric": 1.0380455053961815,
+    "parameters": {
+        "angle": 0.21763761251866753,
+        "shear_x": -0.034333724295596176,
+        "shear_y": -0.004883635806191938,
+        "scale_x": 1.2812661749491014,
+        "scale_y": 1.273618480115999,
+        "translation_x": -6.097072040278234,
+        "translation_y": -17.262382984511362,
+        "k1": 0.10559015823030855,
+        "k2": -0.148903069645938,
+        "k3": -0.14516082830529295,
+        "p1": -0.0006597144513421933,
+        "p2": -0.0031568819592218615
+    },
+    "config": {
+        "camera": {
+            "name": "flir_one_pro",
+            "image_width": 1440,
+            "image_height": 1080,
+            "thermal_width": 640,
+            "thermal_height": 480,
+            "HFOV": 55,
+            "VFOV": 43
+        },
+        "dataset": {
+            "name": "citrus",
+            "path": "data/citrus/train",
+            "is_vertical": true
+        },
+        "optimization": {
+            "algorithm": "woa",
+            "metric": "normalized_mutual_information",
+            "use_distortion": true,
+            "num_images": 10,
+            "use_all_images": false,
+            "epochs": 100,
+            "pop_size": 50,
+            "bins": 64,
+            "seed": 42,
+            "lower_bounds": [
+                -1,
+                -0.05,
+                -0.05,
+                1.0,
+                1.0,
+                -50,
+                -50,
+                -0.5,
+                -0.3,
+                -0.15,
+                -0.01,
+                -0.01
+            ],
+            "upper_bounds": [
+                1,
+                0.05,
+                0.05,
+                1.4,
+                1.4,
+                50,
+                50,
+                0.5,
+                0.3,
+                0.15,
+                0.01,
+                0.01
+            ]
+        },
+        "transform": "manual"
+    }
+}
