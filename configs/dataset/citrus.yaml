@@ -4,3 +4,4 @@ defaults:
 
 name: citrus
 path: data/citrus/train
+is_vertical: true

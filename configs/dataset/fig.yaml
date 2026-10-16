@@ -4,3 +4,4 @@ defaults:
 
 name: fig
 path: data/fig/train
+is_vertical: true

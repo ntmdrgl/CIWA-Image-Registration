@@ -4,3 +4,4 @@ defaults:
 
 name: pistachio
 path: data/pistachio/train
+is_vertical: false

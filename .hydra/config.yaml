@@ -1,14 +1,15 @@
 camera:
   name: flir_one_pro
-  image_width: 1080
-  image_height: 1440
+  image_width: 1440
+  image_height: 1080
   thermal_width: 640
   thermal_height: 480
   HFOV: 55
   VFOV: 43
 dataset:
-  name: almond
-  path: data/almond/train
+  name: fig
+  path: data/fig/train
+  is_vertical: true
 objective:
   metric: mutual_information
 transform:

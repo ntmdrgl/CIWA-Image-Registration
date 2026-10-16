@@ -4,3 +4,4 @@ defaults:
 
 name: grape
 path: data/grape/train
+is_vertical: false

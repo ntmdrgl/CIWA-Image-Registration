@@ -46,21 +46,3 @@ def get_affine_matrix(angle, hx, hy, sx, sy, tx, ty, cx, cy):
 
     affine_matrix = T @ from_origin @ R @ H @ S @ to_origin
     return affine_matrix
-
-# def get_affine_matrix_from_cfg(cfg, camera):
-#     affine_matrix = get_affine_matrix(
-#         cfg.angle, 
-#         cfg.hx, 
-#         cfg.hy, 
-#         cfg.sx, 
-#         cfg.sy, 
-#         cfg.tx, 
-#         cfg.ty,
-#         camera.cx,
-#         camera.cy
-#     )
-#     return affine_matrix
-
-# def get_distortion_coefficients_from_cfg(cfg):
-#     dist_coeffs = np.array([cfg.k1, cfg.k2, cfg.p1, cfg.p2, cfg.k3], dtype=np.float32)
-#     return dist_coeffs

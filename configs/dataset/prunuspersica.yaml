@@ -4,3 +4,4 @@ defaults:
 
 name: prunuspersica
 path: data/prunuspersica/train
+is_vertical: true

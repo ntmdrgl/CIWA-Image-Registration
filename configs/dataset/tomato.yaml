@@ -4,3 +4,4 @@ defaults:
 
 name: tomato
 path: data/tomato/train
+is_vertical: false

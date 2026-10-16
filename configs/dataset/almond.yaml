@@ -4,3 +4,4 @@ defaults:
 
 name: almond
 path: data/almond/train
+is_vertical: true
