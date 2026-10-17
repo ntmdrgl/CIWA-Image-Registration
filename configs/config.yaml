@@ -1,10 +1,10 @@
 defaults:
-  - dataset: tomato
+  - dataset: citrus
   - _self_
   - override hydra/job_logging: disabled # prevents .log generation
 
 optimization:
-  algorithm: gwo
+  algorithm: woa
   metric: mutual_information  # or normalized_mutual_information
   use_distortion: true
 

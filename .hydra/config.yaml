@@ -11,7 +11,7 @@ dataset:
   path: data/citrus/train
   is_vertical: true
 optimization:
-  algorithm: gwo
+  algorithm: woa
   metric: mutual_information
   use_distortion: true
   num_images: 10
@@ -46,4 +46,4 @@ optimization:
   - 0.15
   - 0.01
   - 0.01
-transform: citrus_woa_10nmi
+transform: citrus_woa_10
