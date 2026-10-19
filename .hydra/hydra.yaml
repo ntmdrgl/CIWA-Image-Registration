@@ -98,11 +98,11 @@ hydra:
     - hydra.mode=RUN
     task:
     - dataset=citrus
-    - transform=citrus_woa_10nmi
+    - transform=citrus_woa_10
   job:
     name: test_registration
     chdir: null
-    override_dirname: dataset=citrus,transform=citrus_woa_10nmi
+    override_dirname: dataset=citrus,transform=citrus_woa_10
     id: ???
     num: ???
     config_name: config
@@ -116,18 +116,18 @@ hydra:
   runtime:
     version: 1.3.7
     version_base: '1.3'
-    cwd: C:\Github\CIWA-image-alignment
+    cwd: C:\GitHub\CIWA-image-alignment
     config_sources:
     - path: hydra.conf
       schema: pkg
       provider: hydra
-    - path: C:\Github\CIWA-image-alignment\configs
+    - path: C:\GitHub\CIWA-image-alignment\configs
       schema: file
       provider: main
     - path: ''
       schema: structured
       provider: schema
-    output_dir: C:\Github\CIWA-image-alignment
+    output_dir: C:\GitHub\CIWA-image-alignment
     choices:
       dataset: citrus
       camera: flir_one_pro
