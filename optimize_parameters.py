@@ -1,154 +1,114 @@
-import numpy as np
+from registration.optimization import create_dataset_objective_function, run_optimization
+from registration.camera_intrinsics import calculate_camera_intrinsics, get_camera_matrix
+from registration.utils import load_image_pairs, store_transform
+
+from mealpy import FloatVar, GWO, WOA
 import cv2
-import argparse
-import pathlib
-import matplotlib.pyplot as plt
-from tqdm import tqdm
+from pathlib import Path
 
-import flir_image_extractor
+import hydra
+from hydra.core.hydra_config import HydraConfig
+from omegaconf import DictConfig, OmegaConf
 
-from utils.config import load_config, store_config
-from utils.optimization import run_optimization, create_dataset_objective_function
-from utils.metrics import image_mutual_information
-from utils.camera_intrinsics import get_camera_matrix_from_camera
+# Optimization Algorithm Models
+# - Grey Wolf Optimizer (GWO)
+# - Whale Optimization Algorithm (WOA)
+# - Backpropagation
 
-parser = argparse.ArgumentParser()
+@hydra.main(version_base="1.3", config_path="../configs", config_name="config")
+def main(cfg: DictConfig) -> None:
+    print(OmegaConf.to_yaml(cfg))
 
-parser.add_argument(
-    "--store",
-    type=str,
-    required=True,
-    help=(
-        "Name of the config file in configs/. "
-        "Example: --store my_config or --store my_config.yaml"
-    ),
-)
+    settings = cfg.optimization
 
-args, config_arguments = parser.parse_known_args()
+    dataset_path = Path(cfg.dataset.path)
 
-save_config_name = args.store
-
-# Only configuration-related arguments are passed onward.
-cfg = load_config(config_arguments)
-
-checkboard = cv2.imread("checkerboard_small.png")
-
-src_camera = cfg.visible_camera
-tgt_camera = cfg.thermal_camera
-
-src_images = []
-tgt_images = []
-
-plant = "citrus"
-num_images = 20
-
-thermal_dir = pathlib.Path("data\\" + plant + "\\train_thermal")
-
-flir = flir_image_extractor.FlirImageExtractor()
-
-image_paths = sorted(
-    img
-    for img in thermal_dir.iterdir()
-    if img.is_file() and img.suffix.lower() == ".jpg"
-)
-
-# Process at most num_images.
-image_paths = image_paths[:num_images]
-
-for img in tqdm(
-    image_paths,
-    desc="Extracting FLIR images",
-    unit="image",
-    dynamic_ncols=True,
-):
-    flir.process_image(img)
-
-    src_image = flir.get_rgb_np()
-    tgt_image = flir.get_thermal_np()
-
-    tgt_H, tgt_W = tgt_image.shape[:2]
-
-    # Resize the visible source to the thermal dimensions.
-    src_image = cv2.resize(
-        src_image,
-        (tgt_W, tgt_H),
-        interpolation=cv2.INTER_AREA,
+    # load source-target image pairs
+    src_images, tgt_images = load_image_pairs(
+        visible_path=dataset_path / "visual",
+        thermal_path=dataset_path / "thermal-data",
+        num_images=settings.num_images,
     )
 
-    # Convert visible RGB image to grayscale.
-    src_gray = cv2.cvtColor(
-        src_image,
-        cv2.COLOR_RGB2GRAY,
+    # resize source to target dimensions
+    src_images = [
+        cv2.resize(
+            src,
+            (tgt.shape[1], tgt.shape[0]),
+            interpolation=cv2.INTER_AREA,
+        )
+        for src, tgt in zip(src_images, tgt_images)
+    ]
+
+    # grayscale source images
+    src_images = [
+        cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
+        if src.ndim == 3 else src
+        for src in src_images
+    ]
+
+    parameter_names = [
+        "angle",
+        "shear_x", "shear_y",
+        "scale_x", "scale_y",
+        "translation_x", "translation_y",
+        "k1", "k2", "k3",
+        "p1", "p2",
+    ]
+
+    visible_height = cfg.camera.image_height
+    visible_width = cfg.camera.image_width
+    thermal_height = cfg.camera.thermal_height
+    thermal_width = cfg.camera.thermal_width
+    HFOV = cfg.camera.HFOV
+    VFOV = cfg.camera.VFOV
+
+    # flip dimensions if dataset is portait mode
+    if cfg.dataset.is_vertical:
+        visible_height, visible_width = visible_width, visible_height
+        thermal_height, thermal_width = thermal_width, thermal_height
+        HFOV, VFOV = VFOV, HFOV
+
+    # Camera matrix
+    fx, fy, cx, cy = calculate_camera_intrinsics(
+        H=thermal_height,
+        W=thermal_width,
+        HFOV=HFOV,
+        VFOV=VFOV,
     )
 
-    src_images.append(src_gray)
-    tgt_images.append(tgt_image)
+    camera_matrix = get_camera_matrix(fx, fy, cx, cy)
 
-print(f"Finished extracting {len(src_images)} image pairs.")
+    objective = create_dataset_objective_function(
+        src_images=src_images,
+        tgt_images=tgt_images,
+        camera_matrix=camera_matrix,
+        bins=settings.bins,
+        metric=settings.metric,
+        use_distortion=settings.use_distortion,
+    )
 
-# --- Particle Swarm Optimization ---
+    parameters, fitness = run_optimization(
+        objective_function=objective,
+        lower_bounds=settings.lower_bounds,
+        upper_bounds=settings.upper_bounds,
+        parameter_names=parameter_names,
+        algorithm=settings.algorithm,
+        epoch=settings.epochs,
+        pop_size=settings.pop_size,
+        seed=settings.seed,
+    )
 
-parameter_names = [
-    "angle",
-    "hx", "hy",
-    "sx", "sy",
-    "tx", "ty",
-    "k1", "k2", "k3",
-    "p1", "p2",
-]
+    store_transform(
+        name=f"{cfg.dataset.name}_{settings.algorithm}",
+        source=settings.algorithm,
+        metric=settings.metric,
+        best_metric=fitness,
+        parameters=parameters,
+        config=cfg,
+    )
 
-lower_bounds = (
-    0, # -1.0,                   # angle
-    0, 0, # -0.05, -0.05,           # hx, hy
-     1.0,  1.0,             # sx, sy
-    -10.0, -10.0,           # tx, ty
-    -0.50, -0.30, -0.15,    # k1, k2, k3
-    -0.01, -0.01,           # p1, p2
-)
+    print(f"Best {settings.metric}: {fitness}")
 
-upper_bounds = (
-    0, # 1.0,                   # angle
-    0, 0, # 0.05,  0.05,           # hx, hy
-     1.40, 1.40,           # sx, sy
-     10.0, 10.0,            # tx, ty
-     0.50, 0.30, 0.15,      # k1, k2, k3
-     0.01, 0.01,            # p1, p2
-)
-
-camera_matrix = get_camera_matrix_from_camera(tgt_camera)
-
-objective_function = create_dataset_objective_function(
-    src_images=src_images,
-    tgt_images=tgt_images,
-    camera_matrix=camera_matrix,
-    bins=256,
-)
-
-best_parameters, best_mi = run_optimization(
-    objective_function,
-    lower_bounds,
-    upper_bounds,
-    parameter_names,
-    epoch=20,
-    pop_size=50,
-    c1=1.8,
-    c2=1.2,
-    w=0.9,
-    seed=42
-)
-
-for parameter_name, parameter_value in best_parameters.items():
-    setattr(cfg, parameter_name, float(parameter_value))
-
-print("Best parameters:")
-for name, value in best_parameters.items():
-    print(f"    {name}: {value}")
-
-print("Best mutual information:", best_mi, "\n")
-
-saved_path = store_config(
-    **best_parameters,
-    config_name=save_config_name,
-)
-
-print(f"Saved configuration to: {saved_path}")
+if __name__ == "__main__":
+    main()
