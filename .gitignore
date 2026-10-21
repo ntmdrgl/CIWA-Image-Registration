@@ -1,5 +1,5 @@
 # dataset
-data/
+data/*
 
 # environment
 .venv/
@@ -10,5 +10,4 @@ data/
 # hydra
 .hydra/
 runs/
-scripts/runs/
 multirun/
